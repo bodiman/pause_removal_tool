@@ -1,11 +1,13 @@
 import numpy as np
 import math
+import model
+import torch
 
 """
 
-Segment Audio takes in an audio clip and separates it by pauses into different segments
+Find Silence takes in an audio clip and separates it by pauses into different segments
 
-Segment Audio takes the parameters of
+Find Silence takes the parameters of
 
   audio: a wav file loaded by librosa
 
@@ -16,13 +18,13 @@ Segment Audio takes the parameters of
   sr: the sample rate of the wav file loaded by librosa
 
 
-It returns an array of "audio segments" separated by pauses
+It returns an array of labels indicating wheather a pause is occuring at that time
 
 
 Notes:
 
 This function has a quadratic time complexity, so don't use it on clips any longer than 1 or 2 seconds.
-The "retireve_segments" function is a workaround to this that scales linearly.
+The "retirevesilence" function is a workaround to this that scales linearly.
 
 """
 
@@ -45,7 +47,15 @@ def findsilence(audio, maxamplitude, durations, sr, pl = 0):
     return np.array(silence), pauselength
 
 
-def retrievesilence(length, audio, maxamplitude, durations, sr):
+
+"""
+Retrieve Silence gets around the issue of findsilence having a quadratic time complexity by calling it at an interval
+and concatenating the results. It is called with the same parameters as the above function, plus "length", the length
+of the audio clip passed into the "findsilence" function
+"""
+
+
+def retrievesilence(audio, maxamplitude, durations, sr, length = 10000):
   fullsilence = []
   pl = 0
 
@@ -66,8 +76,46 @@ def retrievesilence(length, audio, maxamplitude, durations, sr):
   return fullsilence
 
 
+"""
+The predictpauses function simply estimates the probability that a given moment in the audio is a part of a pause
+for the entire audio sample. The labelpauses function simply repurposes the functions above to find pauses that meet 
+certain criteria. Currently, this is not really functional for two reasons. One, the model hasn't been trained. In fact,
+the weights haven't even been saved. Two, predictpauses can miss up to 9999 samples depending on the size of the clip. 
+For now, this model serves as a placeholder for the trained model in the future.
+"""
+
+def predictpauses(audio):
+  fullpauses = []
+  pl = 0
+
+  for i in range(10000, len(audio), 10000):
+    x = torch.tensor([[audio[(i-10000):i]]])
+    y = model.predict(x)
+    fullpauses = list(fullpauses) + list(y)
+
+    if i + 10000 > len(audio):
+      break
+  
+  return fullpauses
+
+def labelpauses(predictions, minprob, minlength, sr):
+  inversepredictions = -1 * predictions #the findsilence takes a maximum argument, not a minimum argument, so this is the workaround
+  inverseminprob = -minprob
+
+  return retrievesilence(inversepredictions, inverseminprob, minlength, sr)
+    
+
+
+"""
+FindTimestamps takes the output of the "retrievesilence" or "findsilence" function and creates a list of the starting and ending
+times of silences
+"""
+
 def findTimestamps(silencearray, sr):
   times = []
+
+  if len(silencearray) == 0:
+    return times
 
   currentsilence = []
 
@@ -89,9 +137,14 @@ def findTimestamps(silencearray, sr):
 
   return times
 
+
+"""
+formatTimestamps takes the output of the "findTimestamps" and formats it to be printed
+"""
+
 def formatTimestamps(timestamps):
   output = "Pauses: \n"
   for silence in timestamps:
-    output = output + 'Duration: ' + str(silence[1]-silence[0]) + 'ms    Start Time: ' + str(silence[0]) + 'ms    End Time: ' + str(silence[1]) + 'ms\n'
+    output = output + 'Duration: ' + str(silence[1]-silence[0]) + 's    Start Time: ' + str(silence[0]) + 's    End Time: ' + str(silence[1]) + 's\n'
 
   return output

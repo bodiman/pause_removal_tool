@@ -11,7 +11,7 @@ import audio_selection as asel
 my_parser = argparse.ArgumentParser(
     prog='Pause Selection',
     usage='%(prog)s [options] path',
-    description='List the timestamps of pauses in an mp3 file'
+    description='List the timestamps of pauses in a wav file'
 )
 
 # Add the arguments
@@ -19,7 +19,7 @@ my_parser = argparse.ArgumentParser(
 my_parser.add_argument('Path',
     metavar='path',
     type=str,
-    help='Path of mp3 file'
+    help='Path of wav file'
 )
 
 my_parser.add_argument('Discrimination',
@@ -61,7 +61,7 @@ except:
     raise 'Argument "discrimination" must be a number'
 
 if args.pause:
-    assert 0 <= args.Discrimination <= 1, 'Argument "discrimination" must be between 0 and 1 for pause selection'
+    assert 0 <= float(args.Discrimination) <= 1, 'Argument "discrimination" must be between 0 and 1 for pause selection'
 
 try:
     float(args.Duration)
@@ -71,5 +71,8 @@ except:
 
 if args.silence:
     print(asel.find_silence(args.Path, float(args.Discrimination), float(args.Duration)))
+
+elif args.pause:
+     print(asel.find_pauses(args.Path, float(args.Discrimination), float(args.Duration)))
     
 #print('\n'.join(os.listdir(input_path)))

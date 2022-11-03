@@ -2,6 +2,7 @@ import numpy as np
 import math
 import model
 import torch
+import time
 
 """
 
@@ -56,6 +57,7 @@ of the audio clip passed into the "findsilence" function
 
 
 def retrievesilence(audio, maxamplitude, durations, sr, length = 10000):
+  starttime = time.time()
   fullsilence = []
   pl = 0
 
@@ -73,6 +75,8 @@ def retrievesilence(audio, maxamplitude, durations, sr, length = 10000):
     fullsilence = fullsilence + [1 for i in range(pl)]
   else:
     fullsilence = fullsilence + [0 for i in range(pl)]
+  
+  print(f'Time to run retrievesilence: {time.time() - starttime}')
   return fullsilence
 
 
@@ -89,7 +93,7 @@ def predictpauses(audio):
   pl = 0
 
   for i in range(10000, len(audio), 10000):
-    x = torch.tensor([[audio[(i-10000):i]]])
+    x = torch.tensor(np.array([[audio[(i-10000):i]]]))
     y = model.predict(x)
     fullpauses = list(fullpauses) + list(y)
 

@@ -29,7 +29,7 @@ The "retirevesilence" function is a workaround to this that scales linearly.
 
 """
 
-def findsilence(audio, maxAmplitude, durations, sampleRate, pauseLength = 0):
+def findsilence(audio, maxAmplitude, durations, sampleRate, pauseLength = 0): #what is the difference between durations and duration?
     duration = durations * sampleRate / 1000
 
     silence = []

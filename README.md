@@ -1,5 +1,13 @@
 # pause_removal_tool
 
+
+Documentation:
+    Default Parameters:
+        * M5 model in model.py has a default of n_input=1, n_output=35, stride=16, n_channel=32.
+        * find silence in audio_functions.py has a default of pauseLength=0
+        * retrieve silence has a default of stepSize=10000
+        
+
 Purpose:
     The purpose of the pause removal tool is to automate pause removal process for long audio clips.
     Given a wav file, it should identify pauses or silence in the audio.

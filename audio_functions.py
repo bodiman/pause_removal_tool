@@ -12,11 +12,11 @@ Find Silence takes the parameters of
 
   audio: a wav file loaded by librosa
 
-  maxamplitude: a maximum amplitude for the algorithm to consider a part of the audio silent. About 0.02 is good.
+  maxAmplitude: a maximum amplitude for the algorithm to consider a part of the audio silent. About 0.02 is good.
 
   durations: the minimum time of silence (in milliseconds) that can be considered a pause
 
-  sr: the sample rate of the wav file loaded by librosa
+  sampleRate: the sample rate of the wav file loaded by librosa
 
 
 It returns an array of labels indicating wheather a pause is occuring at that time
@@ -29,25 +29,23 @@ The "retirevesilence" function is a workaround to this that scales linearly.
 
 """
 
-def findsilence(audio, maxamplitude, durations, sr, pl = 0):
-    duration = durations * sr / 1000
+def findsilence(audio, maxAmplitude, durations, sampleRate, pauseLength = 0): #what is the difference between durations and duration?
+    duration = durations * sampleRate / 1000
 
     silence = []
-    pauselength = pl
-    for ms in audio:
-      if ms < maxamplitude:
-        pauselength += 1
+
+    for ms in audio: #what is ms in this context?
+      if ms < maxAmplitude:
+        pauseLength += 1 #what's the point of this?
       else:
-        if pauselength > duration:
-          silence = silence + [1 for i in range(int(pauselength))] + [0]
+        if pauseLength > duration:
+          silence = silence + [1 for i in range(int(pauseLength))] + [0]
         else:
-          silence = silence + [0 for i in range(int((pauselength + 1)))]
-        pauselength = 0
+          silence = silence + [0 for i in range(int((pauseLength + 1)))]
+        pauseLength = 0
     
-    silence = [float(i) for i in silence]
-    return np.array(silence), pauselength
-
-
+    silence = [float(c) for c in silence] #what does float(i) do? #changed for i to c, for code clarity.
+    return np.array(silence), pauseLength #what is pause length?
 
 """
 Retrieve Silence gets around the issue of findsilence having a quadratic time complexity by calling it at an interval
@@ -56,28 +54,29 @@ of the audio clip passed into the "findsilence" function
 """
 
 
-def retrievesilence(audio, maxamplitude, durations, sr, length = 10000):
-  starttime = time.time()
+def retrievesilence(audio, maxAmplitude, durations, sampleRate, stepSize = 10000):
+  #stepSize size of steps forward.
+  starttime = time.time() #timer
   fullsilence = []
-  pl = 0
+  pauseLength = 0
 
-  for i in range(0, len(audio), length):
-    if i + length > len(audio):
-      x = audio[i:]
+  for i in range(0, len(audio), stepSize): #why do you need to input length if you grab length? Renameing for clarity
+    if i + stepSize > len(audio): #if the given step is less than the length of the audio, then grab the given range.
+      x = audio[i:] #this is slightly miss leading, because this is saying, grab everythign after this particular time stamp, rather than this range.
     else:
-      x = audio[i:(i+length)]
+      x = audio[i:(i+stepSize)] #a little less missleading.
     
-    silence, pl = findsilence(x, maxamplitude, durations, sr, pl)
+    silence, pauseLength = findsilence(x, maxAmplitude, durations, sampleRate, pauseLength) #what does sampleRate and pauseLength stand for?
 
-    fullsilence = list(fullsilence) + list(silence)
+    fullsilence = list(fullsilence) + list(silence) #what is going on here?
 
-  if pl > durations * sr / 1000:
-    fullsilence = fullsilence + [1 for i in range(pl)]
+  if pauseLength > durations * sampleRate / 1000: #again what is pauseLength and sampleRate here?
+    fullsilence = fullsilence + [1 for i in range(pauseLength)]
   else:
-    fullsilence = fullsilence + [0 for i in range(pl)]
+    fullsilence = fullsilence + [0 for i in range(pauseLength)]
   
   print(f'Time to run retrievesilence: {time.time() - starttime}')
-  return fullsilence
+  return fullsilence #what is full silence?
 
 
 """
@@ -90,7 +89,7 @@ For now, this model serves as a placeholder for the trained model in the future.
 
 def predictpauses(audio):
   fullpauses = []
-  pl = 0
+  pauseLength = 0
 
   for i in range(10000, len(audio), 10000):
     x = torch.tensor(np.array([[audio[(i-10000):i]]]))
@@ -102,11 +101,11 @@ def predictpauses(audio):
   
   return fullpauses
 
-def labelpauses(predictions, minprob, minlength, sr):
+def labelpauses(predictions, minprob, minlength, sampleRate):
   inversepredictions = -1 * predictions #the findsilence takes a maximum argument, not a minimum argument, so this is the workaround
   inverseminprob = -minprob
 
-  return retrievesilence(inversepredictions, inverseminprob, minlength, sr)
+  return retrievesilence(inversepredictions, inverseminprob, minlength, sampleRate) #what exactly is this retrieving, is this returning the silences that are applicable?
     
 
 
@@ -115,7 +114,7 @@ FindTimestamps takes the output of the "retrievesilence" or "findsilence" functi
 times of silences
 """
 
-def findTimestamps(silencearray, sr):
+def findTimestamps(silencearray, sampleRate):
   times = []
 
   if len(silencearray) == 0:
@@ -128,15 +127,15 @@ def findTimestamps(silencearray, sr):
 
   for i in range(1, len(silencearray)):
     if silencearray[i] == 1 and silencearray[i-1] == 0:
-      currentsilence.append(i / sr)
+      currentsilence.append(i / sampleRate)
 
     elif silencearray[i] == 0 and silencearray[i-1] == 1:
-      currentsilence.append(i / sr)
+      currentsilence.append(i / sampleRate)
       times.append(currentsilence)
       currentsilence = []
 
   if len(currentsilence) == 1:
-    currentsilence.append(len(silencearray) / sr)
+    currentsilence.append(len(silencearray) / sampleRate)
     times.append(currentsilence)
 
   return times

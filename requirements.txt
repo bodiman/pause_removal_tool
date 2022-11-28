@@ -1,0 +1,9 @@
+
+# Base ----------------------------------------
+matplotlib>=3.2.2
+numpy>=1.18.5
+torch
+torchaudio
+librosa
+pandas>=1.1.4
+ipython

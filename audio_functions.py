@@ -56,7 +56,7 @@ of the audio clip passed into the "findsilence" function
 
 def retrievesilence(audio, maxAmplitude, durations, sampleRate, stepSize = 10000):
   #stepSize size of steps forward.
-  starttime = time.time() #timer
+  # starttime = time.time() #timer
   fullsilence = []
   pauseLength = 0
 
@@ -75,7 +75,7 @@ def retrievesilence(audio, maxAmplitude, durations, sampleRate, stepSize = 10000
   else:
     fullsilence = fullsilence + [0 for i in range(pauseLength)]
   
-  print(f'Time to run retrievesilence: {time.time() - starttime}')
+  # print(f'Time to run retrievesilence: {time.time() - starttime}')
   return fullsilence #what is full silence?
 
 

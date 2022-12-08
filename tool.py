@@ -10,7 +10,7 @@ import audio_selection as asel
 # Create the parser
 my_parser = argparse.ArgumentParser(
     prog='Pause Selection',
-    usage='%(prog)s [options] path',
+    usage='%(prog)s path duration descrimination [pausetype]',
     description='List the timestamps of pauses in a wav file'
 )
 
@@ -37,14 +37,14 @@ my_parser.add_argument('Duration',
 my_parser.add_argument(
     '-s',
     '--silence', 
-    help='version',
+    help='silent pause, descriminate below a certain amplitude in wav file',
     action="store_true"
 )
 
 my_parser.add_argument(
     '-p',
     '--pause', 
-    help='version',
+    help='audible pause, descriminate above confidence of pause prediction',
     action="store_true"
 )
 

@@ -42,8 +42,9 @@ Data Generation:
 
 
 Future Tasks:
-    1. Generate data and train the model.
-    2. Increase diversity in pauses, there are currently only 6 different samples, so the model will definitely overfit
-        a. get people to read a speach or something, then provide a few pause samples and insert.
-    3. Rewrite the predictpauses function. At the moment it's pretty much the same function that identifies silent pauses, which most likely isn't the most effective solution
-    4. Parallelize the retrieve_silence and predictpauses functions
+    1. Train model.
+    2. Implement a function which splits a .wav file into a bunch of smaller 3 seconds audio snippits so that the model can interpert it.
+    3. Test dataset with model, and check if the model works well. If not, go back and edit model architecture.
+    
+BUGS:
+    1. Model loader function probably doesn't work, given the amount of assumptions I (Livi) made about the inputs. Thus, an audio processing function must be made.

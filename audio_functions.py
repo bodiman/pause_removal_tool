@@ -1,9 +1,33 @@
 import numpy as np
 import math
 import model
+
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+from torch.nn import init
+from createMelSpectoGram import AudioUtil, SoundDS, random_split
+
 import time
 
+# from model.py import AudioClassifier #model.ipynb must have been translated/exported into a python file
+
+#create load model weights:
+
+pathToModel = "model.pt"
+
+model = torch.load(pathToModel)
+
+def predict(model, input): #assuming that input is an array as such: [melspectogram, label]
+  model.eval(input)
+  
+  with torch.no_grad():
+    predictions = model(input)
+
+  
+    
 """
 
 Find Silence takes in an audio clip and separates it by pauses into different segments
@@ -28,6 +52,7 @@ This function has a quadratic time complexity, so don't use it on clips any long
 The "retirevesilence" function is a workaround to this that scales linearly.
 
 """
+
 
 def findsilence(audio, maxAmplitude, durations, sampleRate, pauseLength = 0): #what is the difference between durations and duration?
     duration = durations * sampleRate / 1000
@@ -87,17 +112,21 @@ the weights haven't even been saved. Two, predictpauses can miss up to 9999 samp
 For now, this model serves as a placeholder for the trained model in the future.
 """
 
-def predictpauses(audio):
+def predictpauses(audio): #audio must be adjusted to be an array with a list of wav files, and labels. The original audio must be split into 3 second clips and resaved.
   fullpauses = []
   pauseLength = 0
 
-  for i in range(10000, len(audio), 10000):
-    x = torch.tensor(np.array([[audio[(i-10000):i]]]))
-    y = model.predict(x)
-    fullpauses = list(fullpauses) + list(y)
 
-    if i + 10000 > len(audio):
-      break
+  myds = SoundDS(audio, './data/clips/')
+
+  # Random split of 80:20 between training and validation
+  num_items = len(myds)
+  num_train = round(num_items * 0.8)
+
+  # Create training and validation data loaders
+  inputDL = torch.utils.data.DataLoader(num_train, batch_size=16, shuffle=True)
+  
+  predictions = model(inputDL)
   
   return fullpauses
 

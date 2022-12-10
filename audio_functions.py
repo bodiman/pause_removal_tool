@@ -151,3 +151,10 @@ def formatTimestamps(timestamps):
     output = output + 'Duration: ' + str(silence[1]-silence[0]) + 's    Start Time: ' + str(silence[0]) + 's    End Time: ' + str(silence[1]) + 's\n'
 
   return output
+
+def exportwav(audio, sr, timestamps):
+  newaudio = []
+  for silence in timestamps:
+    newaudio += audio[silence[0]*sr*1000:silence[1]*sr*1000]
+
+  return newaudio

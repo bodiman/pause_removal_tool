@@ -3,6 +3,8 @@ from random import randint
 
 from audio_functions import *
 
+from handleargs import handleargs
+
 
 #Black Box/Unit Tests
 
@@ -22,10 +24,23 @@ def predictpauses_test(audio=random.normal(size=(randint(1, 20000)))):
     assert len(audio) == len(test), f"Mismatched inputted and outputted lengths in predictpauses_test. Inputting array of length {len(audio)} and getting outputted array of length {len(test)}"
 
 #White Box/End to End Tests
+class TestObject():
+    def __init__(self, Path=random.normal(size=(randint(1, 200))), Discrimination=random.normal(), Duration=randint(1, 1000), silence=True, pause=False):
+        self.Path = Path
+        self.Discrimination = Discrimination
+        self.Duration = Duration
+        self.silence = silence
+        self.pause = pause
+
+def fulltest(args = TestObject()):
+    handleargs(args, debug=True) #has built in tests
 
 #Adverserial Tests
 
-for _ in range(1000):
-    findsilence_test()
-    retrievesilence_test()
-    predictpauses_test(audio=random.normal(size=(randint(1, 19000))))
+#running all tests
+
+# for _ in range(1000):
+#     findsilence_test()
+#     retrievesilence_test()
+#     predictpauses_test(audio=random.normal(size=(randint(1, 20000))))
+#     fulltest()
